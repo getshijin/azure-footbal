@@ -1,0 +1,45 @@
+# Ignore virtual environment directories
+.venv/
+env/
+venv/
+
+# Ignore Python bytecode files
+*.pyc
+*.pyo
+__pycache__/
+
+# Ignore Pipenv files
+Pipfile.lock
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore Azure-specific files
+*.publishsettings
+*.azure
+*.json
+
+# Ignore any secrets or credentials files
+*.pem
+*.key
+*.pfx
+*.cer
+*.crt
+*.asc
+*.password
+*.env
+*.envrc
+*.yaml
+*.yml
+
+# Ignore logs and temporary files
+*.log
+*.bak
+*.swp
+*.tmp
+
+# Ignore the terraform directory if using terraform for infrastructure management
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
