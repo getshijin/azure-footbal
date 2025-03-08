@@ -16,12 +16,15 @@ def get_wikipedia_data(html):
     from bs4 import BeautifulSoup
 
     soup = BeautifulSoup(html, 'html.parser')
-    table = soup.find_all("table",{"class": "wikitable sortable"})[0]
+    print("shijin")
+    print(soup)
+    table = soup.find_all("table",{"class": "wikitable sortable sticky-header"})[0]
 
     table_rows = table.find_all('tr')
     return table_rows
 
 def extract_wikipedia_data(**kwargs):
+    import pandas as pd
     url = kwargs['url']
     html = get_wikipedia_page(url)
     rows = get_wikipedia_data(html)
@@ -41,5 +44,7 @@ def extract_wikipedia_data(**kwargs):
             'home_team': tds[6].text
         }
         data.append(values)
-    print(data)
+    
+    df = pd.DataFrame(data)
+    df.to_csv("data/output.csv",index=False)
     return data
