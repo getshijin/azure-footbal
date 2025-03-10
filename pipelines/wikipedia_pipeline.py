@@ -33,16 +33,24 @@ def extract_wikipedia_data(**kwargs):
         tds = rows[i].find_all('td')
         values = {
             'rank': i,
-            'stadium': tds[0].text,
-            'capacity': tds[1].text,
-            'region': tds[2].text,
-            'country': tds[3].text,
-            'city': tds[4].text,
-            'images': tds[5].find('img').get('src').split("//")[1] if tds[5].find('img') else 'NO-IMAGE',
-            'home_team': tds[6].text
+            'stadium': clean_text(tds[0].text),
+            'capacity': clean_text(tds[1].text),
+            'region': clean_text(tds[2].text),
+            'country': clean_text(tds[3].text),
+            'city': clean_text(tds[4].text),
+            'images':'https://'+ tds[5].find('img').get('src').split("//")[1] if tds[5].find('img') else 'NO-IMAGE',
+            'home_team': clean_text(tds[6].text)
         }
         data.append(values)
     
     df = pd.DataFrame(data)
     df.to_csv("data/output.csv",index=False)
     return data
+
+    def clean_text():
+        text =str(text).strip()
+        text = text.replace('&nbsp','')
+        if text.find(" ♦"): text = text.split(' ♦')[0]
+        if text.find('[') != -1: text = text.split('[')[0]
+        if text.find( ' (formerly)') != -1: text = text.split(' (formerly)')[0]
+        return  text.replace('\n','')
