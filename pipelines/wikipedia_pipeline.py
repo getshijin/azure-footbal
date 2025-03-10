@@ -20,7 +20,14 @@ def get_wikipedia_data(html):
 
     table_rows = table.find_all('tr')
     return table_rows
-
+def clean_text():
+    text =str(text).strip()
+    text = text.replace('&nbsp','')
+    if text.find(" ♦"): text = text.split(' ♦')[0]
+    if text.find('[') != -1: text = text.split('[')[0]
+    if text.find( ' (formerly)') != -1: text = text.split(' (formerly)')[0]
+    return  text.replace('\n','')
+    
 def extract_wikipedia_data(**kwargs):
     import pandas as pd
     url = kwargs['url']
@@ -47,10 +54,4 @@ def extract_wikipedia_data(**kwargs):
     df.to_csv("data/output.csv",index=False)
     return data
 
-    def clean_text():
-        text =str(text).strip()
-        text = text.replace('&nbsp','')
-        if text.find(" ♦"): text = text.split(' ♦')[0]
-        if text.find('[') != -1: text = text.split('[')[0]
-        if text.find( ' (formerly)') != -1: text = text.split(' (formerly)')[0]
-        return  text.replace('\n','')
+  
