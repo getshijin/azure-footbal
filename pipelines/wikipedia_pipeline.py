@@ -16,8 +16,6 @@ def get_wikipedia_data(html):
     from bs4 import BeautifulSoup
 
     soup = BeautifulSoup(html, 'html.parser')
-    print("shijin")
-    print(soup)
     table = soup.find_all("table",{"class": "wikitable sortable sticky-header"})[0]
 
     table_rows = table.find_all('tr')
