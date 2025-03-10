@@ -27,6 +27,6 @@ extract_data_from_wikipedia = PythonOperator(
 )
 # 
 #preprocessing
-def processing():
-    
+#def processing():
+
 #write
