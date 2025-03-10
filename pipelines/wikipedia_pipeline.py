@@ -1,3 +1,9 @@
+import json
+
+import pandas as pd
+from geopy import Nominatim
+
+NO_IMAGE = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/No-image-available.png/480px-No-image-available.png'
 
 def get_wikipedia_page(url):
     import requests
@@ -41,7 +47,7 @@ def extract_wikipedia_data(**kwargs):
         values = {
             'rank': i,
             'stadium': clean_text(tds[0].text),
-            'capacity': clean_text(tds[1].text),
+            'capacity': clean_text(tds[1].text).replace(',',''),
             'region': clean_text(tds[2].text),
             'country': clean_text(tds[3].text),
             'city': clean_text(tds[4].text),
@@ -50,8 +56,43 @@ def extract_wikipedia_data(**kwargs):
         }
         data.append(values)
     
-    df = pd.DataFrame(data)
-    df.to_csv("data/output.csv",index=False)
-    return data
+    json_rows = json.dumps(data)
+    kwargs['ti'].xcom_push(key='rows',value=json_rows)
+    return 'OK'
 
-  
+def get_lat_lon(country,city):
+    geolocator = Nominatim(user_agent= 'geoapiExercises')
+    location = geolocator.geocode(f'{city}, {country}')
+
+    if location:
+        return location.latitude, location.longitude
+
+def transform_wikipedia_data(**kwargs):
+    
+    data = kwargs['ti'].xcom_pull(key='rows', task_ids='extract_data_task_id')
+    data = json.loads(data)
+    stadiums_df = pd.DataFrame(data)
+    stadiums_df['images'] = stadiums_df['images'].apply(lambda x: x if x not in ['NO-IMAGE','',None] else NO_IMAGE)
+    stadiums_df['location'] = stadiums_df.apply(lambda x: get_lat_lon(x['country'], x['stadium'] ),axis=1)
+    stadiums_df['capacity'] = stadiums_df['capacity'].astype(int)
+    #handle duplicate
+
+    duplicates = stadiums_df.duplicated(['location'])
+    duplicates['location'] =duplicates.apply(lambda x: get_lat_lon(x['country'], x['city'] ),axis=1)
+    stadiums_df.update(duplicates)
+
+    #push to xcom
+    kwargs['ti'].xcom_push(key='rows',value= stadiums_df.to_json())
+
+    return 'OK'
+
+def write_wikipedia_data(**kwargs):
+    from datetime import datetime
+    data = kwargs['ti'].xcom_pull(key='rows',task_ids= 'transform_task_id')
+    data = json.loads(data)
+    
+    file_name =('stadium_cleaned_'+ str(datetime.now().date()) + '_' + str(datetime.now().time()).replace(":" , ",")+'.csv' )
+    
+    data.to_csv('data/'+ file_name,index=False)
+
+    return 'OK'
