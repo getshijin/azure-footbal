@@ -2,7 +2,7 @@ import json
 
 import pandas as pd
 from geopy.geocoders import Photon
-
+from pipelines.secret import aws_access_key
 NO_IMAGE = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/No-image-available.png/480px-No-image-available.png'
 
 def get_wikipedia_page(url):
@@ -61,7 +61,7 @@ def extract_wikipedia_data(**kwargs):
     return 'OK'
 
 def get_lat_lon(country,city):
-    geolocator = Photon(user_agent= 'geoapiExercises')
+    geolocator = Photon(user_agent= 'geoapiExercises',timeout=10)
     location = geolocator.geocode(f'{city}, {country}')
 
     if location:
@@ -73,13 +73,13 @@ def transform_wikipedia_data(**kwargs):
     data = json.loads(data)
     stadiums_df = pd.DataFrame(data)
     stadiums_df['images'] = stadiums_df['images'].apply(lambda x: x if x not in ['NO-IMAGE','',None] else NO_IMAGE)
-    stadiums_df['location'] = stadiums_df.apply(lambda x: get_lat_lon(x['country'], x['stadium'] ),axis=1)
+    #stadiums_df['location'] = stadiums_df.apply(lambda x: get_lat_lon(x['country'], x['stadium'] ),axis=1)
     stadiums_df['capacity'] = stadiums_df['capacity'].astype(int)
     #handle duplicate
 
-    duplicates = stadiums_df.duplicated(['location'])
-    duplicates['location'] =duplicates.apply(lambda x: get_lat_lon(x['country'], x['city'] ),axis=1)
-    stadiums_df.update(duplicates)
+    # duplicates = stadiums_df[stadiums_df.duplicated(['location'])]
+    # duplicates['location'] =duplicates.apply(lambda x: get_lat_lon(x['country'], x['city'] ),axis=1)
+    # stadiums_df.update(duplicates)
 
     #push to xcom
     kwargs['ti'].xcom_push(key='rows',value= stadiums_df.to_json())
@@ -93,6 +93,9 @@ def write_wikipedia_data(**kwargs):
     data = pd.DataFrame(data)
     file_name =('stadium_cleaned_'+ str(datetime.now().date()) + '_' + str(datetime.now().time()).replace(":" , "_")+'.csv' )
     
-    data.to_csv('data/'+ file_name,index=False)
-
+    #data.to_csv('data/'+ file_name,index=False)
+    data.to_csv('abfs://footballdata@footballdataenginee.dfs.core.windows.net/data/' + file_name,
+                storage_options={
+                    'account_key': aws_access_key
+                }, index=False)
     return 'OK'

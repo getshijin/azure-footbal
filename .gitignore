@@ -18,6 +18,7 @@ Pipfile.lock
 *.publishsettings
 *.azure
 *.json
+*.csv
 
 # Ignore any secrets or credentials files
 *.pem
