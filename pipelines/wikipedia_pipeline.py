@@ -1,7 +1,7 @@
 import json
 
 import pandas as pd
-from geopy import Nominatim
+from geopy.geocoders import Photon
 
 NO_IMAGE = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/No-image-available.png/480px-No-image-available.png'
 
@@ -61,7 +61,7 @@ def extract_wikipedia_data(**kwargs):
     return 'OK'
 
 def get_lat_lon(country,city):
-    geolocator = Nominatim(user_agent= 'geoapiExercises')
+    geolocator = Photon(user_agent= 'geoapiExercises')
     location = geolocator.geocode(f'{city}, {country}')
 
     if location:
@@ -91,7 +91,7 @@ def write_wikipedia_data(**kwargs):
     data = kwargs['ti'].xcom_pull(key='rows',task_ids= 'transform_task_id')
     data = json.loads(data)
     data = pd.DataFrame(data)
-    file_name =('stadium_cleaned_'+ str(datetime.now().date()) + '_' + str(datetime.now().time()).replace(":" , ",")+'.csv' )
+    file_name =('stadium_cleaned_'+ str(datetime.now().date()) + '_' + str(datetime.now().time()).replace(":" , "_")+'.csv' )
     
     data.to_csv('data/'+ file_name,index=False)
 
