@@ -43,3 +43,5 @@ Pipfile.lock
 *.tfstate
 *.tfstate.backup
 *.tfvars
+
+secret.py
